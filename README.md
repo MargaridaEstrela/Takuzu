@@ -1,0 +1,2 @@
+# takuzu
+ IA Project
