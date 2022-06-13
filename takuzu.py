@@ -264,7 +264,7 @@ class Takuzu(Problem):
         new_board.board_repr = board.board_repr
         new_board.change_number(row, col, value)
 
-        new_state = TakuzuState(new_board, state.free() - 1)
+        new_state = TakuzuState(new_board, state.free - 1)
 
         return new_state
 
