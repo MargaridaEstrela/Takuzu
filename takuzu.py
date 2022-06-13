@@ -50,12 +50,12 @@ class Board:
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
 
-        self.board_repr[row, col] = value
+        self.board_repr[row][col] = value
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
 
-        return self.board_repr[row, col]
+        return self.board_repr[row][col]
 
     def get_row(self, row: int):
         """Devolve a linha correspondente do tabuleiro."""
