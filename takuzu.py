@@ -49,9 +49,9 @@ class Board:
 
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
-        #print(self.size())
-        #print(str(row))
-        #print(str(col))
+        print(self.size())
+        print(str(row))
+        print(str(col))
         self.board_repr[row][col] = value
 
     def get_number(self, row: int, col: int) -> int:
@@ -302,6 +302,6 @@ if __name__ == "__main__":
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
     print(board.to_string())
-    print(board.size())
-    #goal_node = depth_first_tree_search(problem)
+    #print(board.size())
+    goal_node = depth_first_tree_search(problem)
     #print(goal_node.state.board.to_string())
