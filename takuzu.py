@@ -45,13 +45,12 @@ class Board:
         self.board_repr = np.full((n, n), 2, dtype=int)
 
     def size(self):
+        """Devolve a dimensão do tabuleiro."""
         return len(self.board_repr)
 
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
-        print(self.size())
-        print(str(row))
-        print(str(col))
+
         self.board_repr[row][col] = value
 
     def get_number(self, row: int, col: int) -> int:
@@ -82,6 +81,8 @@ class Board:
             for col in range(n):
                 if self.get_number(row, col) == 2:
                     return row, col
+
+        return None
 
     def get_all_free(self) -> int:
         """Devolve o numero de posicoes livres do tabuleiro, da direita para a
@@ -134,16 +135,19 @@ class Board:
         """ Retorna True se e só se todas as linhas e colunas forem
          diferentes."""
         n = self.size()
-        rows = []
-        cols = []
+        for i in range(n):
+            col = self.get_col(i)
+            for j in range(i+1, n):
+                if np.array_equal(col, self.get_col(j)):
+                    return False
 
         for i in range(n):
-            rows.append(self.get_row(i))
-            cols.append(self.get_col(i))
+            row = self.get_row(i)
+            for j in range(i+1, n):
+                if np.array_equal(row, self.get_row(j)):
+                    return False
 
-        total = rows + cols
-
-        return len(np.unique(total)) == 2*n
+        return True
 
     def verify_row_col(self):
         """ Retorna True se e só se há o valor certo de 0s e/ou 1s em cada \
@@ -156,12 +160,14 @@ class Board:
             limit = n//2 + 1
 
         for i in range(n):
+            col = self.get_col(i)
+            row = self.get_row(i)
             # verificar se a linha tem mais 1s ou 0s que o suposto
-            if self.get_row(i).count(1) > limit or self.get_row(i).count(0) > limit:
+            if np.count_nonzero(row) > limit or np.count_nonzero(row)-limit > 0:
                 return False
 
             # verificar se a coluna tem mais 1s ou 0s que o suposto
-            if self.get_col(i).count(1) > limit or self.get_col(i).count(0) > limit:
+            if np.count_nonzero(col) > limit or np.count_nonzero(col)-limit > 0:
                 return False
 
             return True
@@ -175,7 +181,7 @@ class Board:
             for col in range(n):
                 pos = (self.get_number(row, col))
                 adj = pos + self.adjacent_horizontal_numbers(row, col)
-                if len(unique(adj) == 0):
+                if len(unique(adj)) == 1:
                     return False
         return True
 
@@ -188,8 +194,9 @@ class Board:
             for col in range(n):
                 pos = (self.get_number(row, col))
                 adj = pos + self.adjacent_vertical_numbers(row, col)
-                if len(unique(adj) == 0):
+                if len(unique(adj)) == 1:
                     return False
+
         return True
 
     @staticmethod
@@ -206,7 +213,6 @@ class Board:
 
         n = int(sys.stdin.readline().rstrip('\n'))
         board = Board(n)
-        i = 0
 
         input = sys.stdin.readlines()
         for line, i in zip(input, range(n)):
@@ -232,19 +238,17 @@ class Takuzu(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         # TODO
-        self.initial = TakuzuState(board, board.get_all_free)
+        self.initial = TakuzuState(board, board.get_all_free())
 
     def actions(self, state: TakuzuState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         # TODO
 
-        board = state.board
-        n = board.size()
-        position = board.get_first_free()
+        position = state.board.get_first_free()
 
         if position is None:
-            return [(n, n, n)]
+            return []
         else:
             return [(position[0], position[1], 0), (position[0], position[1], 1)]
 
@@ -254,17 +258,18 @@ class Takuzu(Problem):
         das presentes na lista obtida pela execução de
         self.actions(state)."""
 
-        board = state.board
-        n = board.size()
+        n = state.board.size()
 
         row, col, value = action
 
         # atualização do tabueleiro
         new_board = Board(n)
-        new_board.board_repr = board.board_repr
+        new_board.board_repr = board.board_repr.copy()
+        print(new_board.to_string())
+        print(str(row) + str(col) + str(value))
         new_board.change_number(row, col, value)
 
-        new_state = TakuzuState(new_board, new_board.get_all_free())
+        new_state = TakuzuState(new_board, state.free - 1)
 
         return new_state
 
@@ -276,7 +281,7 @@ class Takuzu(Problem):
 
         board = state.board
 
-        if board.get_all_free() > 0:
+        if state.free > 0:
             return False
 
         else:
@@ -302,6 +307,5 @@ if __name__ == "__main__":
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
     print(board.to_string())
-    # print(board.size())
     goal_node = depth_first_tree_search(problem)
-    # print(goal_node.state.board.to_string())
+    print(goal_node.state.board.to_string())
