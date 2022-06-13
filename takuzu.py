@@ -11,10 +11,7 @@
 
 import sys
 import numpy as np
-from utils import (
-    remove_all,
-    unique
-)
+from utils import unique
 from search import (
     Problem,
     Node,
@@ -52,7 +49,9 @@ class Board:
 
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
-
+        #print(self.size())
+        #print(str(row))
+        #print(str(col))
         self.board_repr[row][col] = value
 
     def get_number(self, row: int, col: int) -> int:
@@ -62,7 +61,6 @@ class Board:
 
     def get_row(self, row: int):
         """Devolve a linha correspondente do tabuleiro."""
-
         return self.board_repr[row]
 
     def get_col(self, col: int):
@@ -156,14 +154,14 @@ class Board:
             limit = n//2
         else:
             limit = n//2 + 1
+
         for i in range(n):
             # verificar se a linha tem mais 1s ou 0s que o suposto
             if self.get_row(i).count(1) > limit or self.get_row(i).count(0) > limit:
                 return False
 
             # verificar se a coluna tem mais 1s ou 0s que o suposto
-            if self.get_col(i).count(1) > limit or \
-                self.get_col(i).count(0) > limit:
+            if self.get_col(i).count(1) > limit or self.get_col(i).count(0) > limit:
                 return False
 
             return True
@@ -208,14 +206,11 @@ class Board:
 
         n = int(sys.stdin.readline().rstrip('\n'))
         board = Board(n)
+        i = 0
 
-        for row in range(n):
-            input = sys.stdin.readline().rstrip('\n')
-            num_string = remove_all('\t', input)
-            for col in range(n):
-                value = num_string[col]
-                if value != 2:
-                    board.change_number(row, col, value)
+        input = sys.stdin.readlines()
+        for line, i in zip(input, range(n)):
+            board.board_repr[i] = (list(map(int, line.rstrip("\n").split("\t"))))
 
         return board
 
@@ -227,12 +222,10 @@ class Board:
         output = ""
 
         for row in self.board_repr:
-            for col in self.board.repr:
-                output += str(self.get_number(row, col))
-                output += "\t"
-
+            output += "\t".join(map(str, row))
             output += "\n"
-        return output
+
+        return output.rstrip()
 
 
 class Takuzu(Problem):
@@ -264,9 +257,7 @@ class Takuzu(Problem):
         board = state.board
         n = board.size()
 
-        row = action[0]
-        col = action[1]
-        value = action[2]
+        row, col, value = action
 
         # atualização do tabueleiro
         new_board = Board(n)
@@ -310,5 +301,7 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    goal_node = depth_first_tree_search(problem)
-    print(goal_node.state.board.to_string())
+    print(board.to_string())
+    print(board.size())
+    #goal_node = depth_first_tree_search(problem)
+    #print(goal_node.state.board.to_string())
