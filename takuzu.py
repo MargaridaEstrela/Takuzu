@@ -259,13 +259,14 @@ class Takuzu(Problem):
         self.actions(state)."""
 
         board = state.board
+        n = board.size()
 
         row = action[0]
         col = action[1]
         value = action[2]
 
         # atualização do tabueleiro
-        new_board = Board(board.size())
+        new_board = Board(n)
         new_board.board_repr = board.board_repr
         new_board.change_number(row, col, value)
 
