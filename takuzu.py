@@ -26,7 +26,7 @@ from search import (
 class TakuzuState:
     state_id = 0
 
-    def __init__(self, board, free_positions):
+    def __init__(self, board, free_positions: int):
         self.board = board
         self.id = TakuzuState.state_id
         self.free = free_positions
@@ -50,12 +50,10 @@ class Board:
 
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
-
         self.board_repr[row][col] = value
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
-
         return self.board_repr[row][col]
 
     def get_row(self, row: int):
@@ -82,7 +80,7 @@ class Board:
                 if self.get_number(row, col) == 2:
                     return row, col
 
-        return None
+        return None, None
 
     def get_all_free(self) -> int:
         """Devolve o numero de posicoes livres do tabuleiro, da direita para a
@@ -160,14 +158,12 @@ class Board:
             limit = n//2 + 1
 
         for i in range(n):
-            col = self.get_col(i)
-            row = self.get_row(i)
             # verificar se a linha tem mais 1s ou 0s que o suposto
-            if np.count_nonzero(row) > limit or np.count_nonzero(row)-limit > 0:
+            if self.get_row(i).count(1) > limit or self.get_row(i).count(0) > limit:
                 return False
 
             # verificar se a coluna tem mais 1s ou 0s que o suposto
-            if np.count_nonzero(col) > limit or np.count_nonzero(col)-limit > 0:
+            if self.get_col(i).count(1) > limit or self.get_col(i).count(0) > limit:
                 return False
 
             return True
@@ -179,7 +175,7 @@ class Board:
 
         for row in range(n):
             for col in range(n):
-                pos = (self.get_number(row, col))
+                pos = (self.get_number(row, col), )
                 adj = pos + self.adjacent_horizontal_numbers(row, col)
                 if len(unique(adj)) == 1:
                     return False
@@ -192,7 +188,7 @@ class Board:
 
         for row in range(n):
             for col in range(n):
-                pos = (self.get_number(row, col))
+                pos = (self.get_number(row, col), )
                 adj = pos + self.adjacent_vertical_numbers(row, col)
                 if len(unique(adj)) == 1:
                     return False
@@ -247,7 +243,7 @@ class Takuzu(Problem):
 
         position = state.board.get_first_free()
 
-        if position is None:
+        if position == (None, None):
             return []
         else:
             return [(position[0], position[1], 0), (position[0], position[1], 1)]
@@ -264,7 +260,7 @@ class Takuzu(Problem):
 
         # atualização do tabueleiro
         new_board = Board(n)
-        new_board.board_repr = board.board_repr.copy()
+        new_board.board_repr = state.board.board_repr.copy()
         print(new_board.to_string())
         print(str(row) + str(col) + str(value))
         new_board.change_number(row, col, value)
