@@ -64,13 +64,13 @@ class Board:
 
     def get_col(self, col: int):
         """Devolve a linha correspondente do tabuleiro."""
-        col = []
+        column = []
         n = self.size()
 
         for row in range(n):
-            col.append(self.board_repr[row][col])
+            column.append(self.board_repr[row][col])
 
-        return col
+        return column
 
     def get_first_free(self) -> (int, int):
         """Devolve a primeira posicao livre, da direita para a esquerda, de
@@ -140,7 +140,9 @@ class Board:
             rows.append(self.get_row(i))
             cols.append(self.get_col(i))
 
-        return len(unique(rows)) == n & len(unique(cols)) == n
+        total = rows + cols
+
+        return len(np.unique(total)) == 2*n
 
     def verify_row_col(self):
         """ Retorna True se e só se há o valor certo de 0s e/ou 1s em cada \
@@ -245,10 +247,10 @@ class Takuzu(Problem):
         n = board.size()
         position = board.get_first_free()
 
-        if position[0] == n and position[1] == n:
-            return (n, n, n)
+        if position is None:
+            return [(n, n, n)]
         else:
-            return (position[0], position[1], 0), (position[0], position[1], 1)
+            return [(position[0], position[1], 0), (position[0], position[1], 1)]
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -257,14 +259,17 @@ class Takuzu(Problem):
         self.actions(state)."""
 
         board = state.board
-        row, col, value = action
+
+        row = action[0]
+        col = action[1]
+        value = action[2]
 
         # atualização do tabueleiro
         new_board = Board(board.size())
         new_board.board_repr = board.board_repr
         new_board.change_number(row, col, value)
 
-        new_state = TakuzuState(new_board, state.free - 1)
+        new_state = TakuzuState(new_board, new_board.get_all_free())
 
         return new_state
 
@@ -276,13 +281,13 @@ class Takuzu(Problem):
 
         board = state.board
 
-        if state.free > 0:
+        if board.get_all_free() > 0:
             return False
 
         else:
-            return board.unique_row_col(board) and board.verify_row_col(board)\
-                 and board.verify_row_adjacent(board) & \
-                 board.verify_col_adjacent(board)
+            return board.unique_row_col() and board.verify_row_col()\
+                 and board.verify_row_adjacent() & \
+                 board.verify_col_adjacent()
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
