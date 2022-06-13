@@ -45,7 +45,6 @@ class Board:
         self.board_repr = np.full((n, n), 2, dtype=int)
 
     def size(self):
-        """Devolve a dimensão do tabuleiro."""
         return len(self.board_repr)
 
     def change_number(self, row, col, value):
@@ -54,6 +53,7 @@ class Board:
 
     def get_number(self, row: int, col: int) -> int:
         """Devolve o valor na respetiva posição do tabuleiro."""
+
         return self.board_repr[row][col]
 
     def get_row(self, row: int):
@@ -70,7 +70,7 @@ class Board:
 
         return column
 
-    def get_first_free(self) -> (int, int):
+    def get_first_free(self):
         """Devolve a primeira posicao livre, da direita para a esquerda, de
         cima para baixo."""
         n = self.size()
@@ -79,7 +79,6 @@ class Board:
             for col in range(n):
                 if self.get_number(row, col) == 2:
                     return row, col
-
         return None, None
 
     def get_all_free(self) -> int:
@@ -93,7 +92,7 @@ class Board:
                     free += 1
         return free
 
-    def adjacent_vertical_numbers(self, row: int, col: int) -> (int, int):
+    def adjacent_vertical_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente abaixo e acima,
         respectivamente."""
 
@@ -111,7 +110,7 @@ class Board:
 
         return up, down
 
-    def adjacent_horizontal_numbers(self, row: int, col: int) -> (int, int):
+    def adjacent_horizontal_numbers(self, row: int, col: int):
         """Devolve os valores imediatamente à esquerda e à direita,
         respectivamente."""
 
@@ -125,7 +124,7 @@ class Board:
         if col == n-1:
             right = None
         else:
-            right = self.get_number(row, col)
+            right = self.get_number(row, col+1)
 
         return left, right
 
@@ -138,7 +137,7 @@ class Board:
             for j in range(i+1, n):
                 if np.array_equal(col, self.get_col(j)):
                     return False
-
+        
         for i in range(n):
             row = self.get_row(i)
             for j in range(i+1, n):
@@ -158,15 +157,17 @@ class Board:
             limit = n//2 + 1
 
         for i in range(n):
+            row = self.get_row(i)
+            col = self.get_col(i)
             # verificar se a linha tem mais 1s ou 0s que o suposto
-            if self.get_row(i).count(1) > limit or self.get_row(i).count(0) > limit:
+            if np.count_nonzero(row) > limit or np.count_nonzero(row) - limit > 0:
                 return False
 
             # verificar se a coluna tem mais 1s ou 0s que o suposto
-            if self.get_col(i).count(1) > limit or self.get_col(i).count(0) > limit:
+            if np.count_nonzero(col) > limit or np.count_nonzero(col) - limit > 0:
                 return False
 
-            return True
+        return True
 
     def verify_row_adjacent(self):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
@@ -175,7 +176,7 @@ class Board:
 
         for row in range(n):
             for col in range(n):
-                pos = (self.get_number(row, col), )
+                pos = (self.get_number(row, col),)
                 adj = pos + self.adjacent_horizontal_numbers(row, col)
                 if len(unique(adj)) == 1:
                     return False
@@ -188,27 +189,25 @@ class Board:
 
         for row in range(n):
             for col in range(n):
-                pos = (self.get_number(row, col), )
+                pos = (self.get_number(row, col),)
                 adj = pos + self.adjacent_vertical_numbers(row, col)
                 if len(unique(adj)) == 1:
                     return False
-
         return True
 
     @staticmethod
     def parse_instance_from_stdin():
         """Lê o test do standard input (stdin) que é passado como argumento
         e retorna uma instância da classe Board.
-
         Por exemplo:
             $ python3 takuzu.py < input_T01
-
             > from sys import stdin
             > stdin.readline()
         """
 
         n = int(sys.stdin.readline().rstrip('\n'))
         board = Board(n)
+        i = 0
 
         input = sys.stdin.readlines()
         for line, i in zip(input, range(n)):
@@ -257,12 +256,9 @@ class Takuzu(Problem):
         n = state.board.size()
 
         row, col, value = action
-
         # atualização do tabueleiro
         new_board = Board(n)
         new_board.board_repr = state.board.board_repr.copy()
-        print(new_board.to_string())
-        print(str(row) + str(col) + str(value))
         new_board.change_number(row, col, value)
 
         new_state = TakuzuState(new_board, state.free - 1)
@@ -281,9 +277,7 @@ class Takuzu(Problem):
             return False
 
         else:
-            return board.unique_row_col() and board.verify_row_col()\
-                 and board.verify_row_adjacent() & \
-                 board.verify_col_adjacent()
+            return board.verify_col_adjacent() and board.verify_row_adjacent() and board.verify_row_col() and board.unique_row_col()
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -302,6 +296,5 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    print(board.to_string())
     goal_node = depth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
