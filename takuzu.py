@@ -204,9 +204,9 @@ class Board:
         n = int(sys.stdin.readline().rstrip('\n'))
         board = Board(n)
 
-        for line, row in zip(sys.stdin.readlines(), n):
-            board.board_repr[row] = list(map(int,
-            line.rstrip("\n").split("\t")))
+        for row in range(n):
+            line = sys.stdin.readline()
+            board.board_repr[row] = list(map(int, line.rstrip('\n').split('\t')))
             for col in range(n):
                 value = board.get_number(row, col)
                 if value != 0:
@@ -234,25 +234,21 @@ class Takuzu(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         # TODO
-        self.initial = TakuzuState(board)
+        self.initial = TakuzuState(board, board.get_all_free)
 
     def actions(self, state: TakuzuState):
         """Retorna uma lista de ações que podem ser executadas a
         partir do estado passado como argumento."""
         # TODO
 
-        actions = []
         board = state.board
         n = board.size()
         position = board.get_first_free()
 
         if position[0] == n and position[1] == n:
-            actions.append((n, n, n))
+            return (n, n, n)
         else:
-            actions.append((position[0], position[1], 0), (position[0],
-                                                           position[1], 1))
-
-        return actions
+            return (position[0], position[1], 0), (position[0], position[1], 1)
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -268,7 +264,7 @@ class Takuzu(Problem):
         new_board.board_repr = board.board_repr
         new_board.change_number(row, col, value)
 
-        new_state = TakuzuState(new_board, state.free - 1)
+        new_state = TakuzuState(new_board, state.free() - 1)
 
         return new_state
 
