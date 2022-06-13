@@ -11,7 +11,10 @@
 
 import sys
 import numpy as np
-from utils import unique
+from utils import (
+    remove_all,
+    unique
+)
 from search import (
     Problem,
     Node,
@@ -207,11 +210,11 @@ class Board:
         board = Board(n)
 
         for row in range(n):
-            line = sys.stdin.readline()
-            board.board_repr[row] = list(map(int, line.rstrip('\n').split('\t')))
+            input = sys.stdin.readline().rstrip('\n')
+            num_string = remove_all('\t', input)
             for col in range(n):
-                value = board.get_number(row, col)
-                if value != 0:
+                value = num_string[col]
+                if value != 2:
                     board.change_number(row, col, value)
 
         return board
