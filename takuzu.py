@@ -302,6 +302,6 @@ if __name__ == "__main__":
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
     print(board.to_string())
-    #print(board.size())
+    # print(board.size())
     goal_node = depth_first_tree_search(problem)
-    #print(goal_node.state.board.to_string())
+    # print(goal_node.state.board.to_string())
