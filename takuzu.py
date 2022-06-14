@@ -133,9 +133,8 @@ class Board:
 
         return left, right
 
+    """
     def unique_row_col(self):
-        """ Retorna True se e só se todas as linhas e colunas forem
-         diferentes."""
         n = self.size()
         for i in range(n):
             col = self.get_col(i)
@@ -152,8 +151,6 @@ class Board:
         return True
 
     def verify_row_col(self):
-        """ Retorna True se e só se há o valor certo de 0s e/ou 1s em cada \
-            linha e coluna."""
         n = self.size()
 
         if n % 2 == 0:
@@ -175,8 +172,6 @@ class Board:
         return True
 
     def verify_row_adjacent(self):
-        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
-         horizontalmente um ao outro."""
         n = self.size()
 
         for row in range(n):
@@ -188,8 +183,6 @@ class Board:
         return True
 
     def verify_col_adjacent(self):
-        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
-         verticalmente um ao outro."""
         n = self.size()
 
         for row in range(n):
@@ -199,6 +192,7 @@ class Board:
                 if len(unique(adj)) == 1:
                     return False
         return True
+    """
 
     @staticmethod
     def parse_instance_from_stdin():
@@ -255,54 +249,91 @@ class Takuzu(Problem):
             new_board.board_repr = state.board.board_repr.copy()
 
             position = new_board.get_first_free()
-            # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-            # print("new action")
-            # print("position:", position)
+            print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            print("new action")
+            print("position:", position)
             new_board.change_number(position[0], position[1], 0)
-            # print("-------------")
-            # print(new_board.to_string())
+            print("-------------")
+            print(new_board.to_string())
 
             row = new_board.get_row(position[0])
-            # print("row:", row)
+            print("row:", row)
 
             col = new_board.get_col(position[1])
-            # print("col:", col)
+            print("col:", col)
 
             if self.verify_adjacent(new_board, position, 0) and self.verify_col_row(new_board, position, 0):
-                act += [(position[0], position[1], 0), ]
-            
-            # print("-------------")
+                if self.verify_rows(new_board) and self.verify_cols(new_board):
+                    act += [(position[0], position[1], 0), ]
+
+            print("-------------")
             new_board.change_number(position[0], position[1], 1)
 
-            # print(new_board.to_string())
-            # row = new_board.get_row(position[0])
-            # print("row:", row)
+            print(new_board.to_string())
+            row = new_board.get_row(position[0])
+            print("row:", row)
 
-            # col = new_board.get_col(position[1])
-            # print("col:", col)
+            col = new_board.get_col(position[1])
+            print("col:", col)
 
             if self.verify_adjacent(new_board, position, 1) and self.verify_col_row(new_board, position, 1):
-                act += [(position[0], position[1], 1), ]
+                if self.verify_rows(new_board) and self.verify_cols(new_board):
+                    act += [(position[0], position[1], 1), ]
 
-            # print("########")
-            # print(act)
-            # print("########")
+            print("########")
+            print(act)
+            print("########")
 
             return act
+
+    def verify_rows(self, board: Board):
+        n = board.size()
+        all = []
+
+        for i in range(n):
+            row = board.get_row(i)
+            if np.count_nonzero(row == 2) == 0:
+                all.append(row)
+
+        all = np.array(all)
+        print("rows = ", all)
+
+        if np.size(all) == 0:
+            return True
+
+        return np.size(np.unique(all)) == np.size(all)
+
+    def verify_cols(self, board: Board):
+        n = board.size()
+        all = []
+
+        for i in range(n):
+            col = board.get_col(i)
+            if np.count_nonzero(col == 2) == 0:
+                all.append(col)
+        
+        all = np.array(all)
+        print(len(np.unique(all)))
+        print(len(all))
+
+        if np.size(all) == 0:
+            return True
+
+        return np.size(np.unique(all)) == np.size(all)
 
     def verify_adjacent(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
          horizontalmente um ao outro."""
         row, col = pos
         adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
-        adj_v = (value, ) + board.adjacent_horizontal_numbers(row, col)
-        if len(unique(adj_h)) == 1 or len(unique(adj_v)) == 1:
+        adj_v = (value, ) + board.adjacent_vertical_numbers(row, col)
+        if np.count_nonzero(adj_h == value) > 2 or np.count_nonzero(adj_v == value) > 2:
             return False
 
         return True
 
     def verify_col_row(self, board: Board, pos, value):
-
+        """ Retorna True caso não haja mais values que o suposto na linha/coluna"""
         n = board.size()
         if n % 2 == 0:
             limit = n//2
@@ -318,6 +349,24 @@ class Takuzu(Problem):
         # print("row =", value_row, "col =", value_col)
 
         return value_row <= limit and value_col <= limit
+
+    def unique_row_col(self, state: TakuzuState):
+        board = state.board
+        n = board.size()
+
+        for i in range(n):
+            col = board.get_col(i)
+            for j in range(i+1, n):
+                if np.array_equal(col, board.get_col(j)):
+                    return False
+
+        for i in range(n):
+            row = board.get_row(i)
+            for j in range(i+1, n):
+                if np.array_equal(row, board.get_row(j)):
+                    return False
+
+        return True
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -346,7 +395,7 @@ class Takuzu(Problem):
         estão preenchidas com uma sequência de números adjacentes."""
         # TODO
 
-        return state.free == 0 and state.board.unique_row_col()
+        return state.free == 0 and self.unique_row_col(state)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
