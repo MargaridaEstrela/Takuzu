@@ -63,12 +63,16 @@ class Board:
     def get_col(self, col: int):
         """Devolve a coluna correspondente do tabuleiro."""
         column = []
-        n = board.size()
+        n = self.size()
 
+        # print("col =", col)
+        # print("tabuleiro")
+        # print(self.board_repr)
         for i in range(n):
-            column.append(board.get_number(i, col))
+            column.append(self.get_number(i, col))
 
         column = np.array(column)
+        # print(column)
         return column
 
     def get_first_free(self):
@@ -246,40 +250,43 @@ class Takuzu(Problem):
         if state.free == 0:
             return act
         else:
-            board = state.board
-            position = board.get_first_free()
-            print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-            print("new action")
-            print("position:", position)
-            board.change_number(position[0], position[1], 0)
-            print("-------------")
-            print(board.to_string())
+            n = state.board.size()
+            new_board = Board(n)
+            new_board.board_repr = state.board.board_repr.copy()
 
-            row = board.get_row(position[0])
-            print("row:", row)
+            position = new_board.get_first_free()
+            # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            # print("new action")
+            # print("position:", position)
+            new_board.change_number(position[0], position[1], 0)
+            # print("-------------")
+            # print(new_board.to_string())
 
-            col = board.get_col(position[1])
-            print("col:", col)
+            row = new_board.get_row(position[0])
+            # print("row:", row)
 
-            if self.verify_adjacent(board, position, 0) and self.verify_col_row(board, position, 0):
+            col = new_board.get_col(position[1])
+            # print("col:", col)
+
+            if self.verify_adjacent(new_board, position, 0) and self.verify_col_row(new_board, position, 0):
                 act += [(position[0], position[1], 0), ]
             
-            print("-------------")
-            board.change_number(position[0], position[1], 1)
+            # print("-------------")
+            new_board.change_number(position[0], position[1], 1)
 
-            print(board.to_string())
-            row = board.get_row(position[0])
-            print("row:", row)
+            # print(new_board.to_string())
+            # row = new_board.get_row(position[0])
+            # print("row:", row)
 
-            col = board.get_col(position[1])
-            print("col:", col)
+            # col = new_board.get_col(position[1])
+            # print("col:", col)
 
-            if self.verify_adjacent(board, position, 1) and self.verify_col_row(board, position, 1):
+            if self.verify_adjacent(new_board, position, 1) and self.verify_col_row(new_board, position, 1):
                 act += [(position[0], position[1], 1), ]
 
-            print("########")
-            print(act)
-            print("########")
+            # print("########")
+            # print(act)
+            # print("########")
 
             return act
 
@@ -308,7 +315,7 @@ class Takuzu(Problem):
         value_row = np.count_nonzero(row == value)
         value_col = np.count_nonzero(col == value)
 
-        print("row =", value_row, "col =", value_col)
+        # print("row =", value_row, "col =", value_col)
 
         return value_row <= limit and value_col <= limit
 
@@ -324,9 +331,11 @@ class Takuzu(Problem):
         # atualização do tabueleiro
         new_board = Board(n)
         new_board.board_repr = state.board.board_repr.copy()
-
+        # print("antes")
+        # print(new_board.board_repr)
         new_board.change_number(row, col, value)
-
+        # print("depois")
+        # print(new_board.board_repr)
         new_state = TakuzuState(new_board, state.free - 1)
 
         return new_state
@@ -356,6 +365,6 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    print(board.board_repr)
+    # print(board.board_repr)
     goal_node = depth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
