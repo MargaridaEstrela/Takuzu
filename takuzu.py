@@ -61,13 +61,14 @@ class Board:
         return self.board_repr[row]
 
     def get_col(self, col: int):
-        """Devolve a linha correspondente do tabuleiro."""
+        """Devolve a coluna correspondente do tabuleiro."""
         column = []
-        n = self.size()
+        n = board.size()
 
-        for row in range(n):
-            column.append(self.board_repr[row][col])
+        for i in range(n):
+            column.append(board.get_number(i, col))
 
+        column = np.array(column)
         return column
 
     def get_first_free(self):
@@ -137,7 +138,7 @@ class Board:
             for j in range(i+1, n):
                 if np.array_equal(col, self.get_col(j)):
                     return False
-        
+
         for i in range(n):
             row = self.get_row(i)
             for j in range(i+1, n):
@@ -240,12 +241,76 @@ class Takuzu(Problem):
         partir do estado passado como argumento."""
         # TODO
 
-        position = state.board.get_first_free()
+        act = []
 
-        if position == (None, None):
-            return []
+        if state.free == 0:
+            return act
         else:
-            return [(position[0], position[1], 0), (position[0], position[1], 1)]
+            board = state.board
+            position = board.get_first_free()
+            print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+            print("new action")
+            print("position:", position)
+            board.change_number(position[0], position[1], 0)
+            print("-------------")
+            print(board.to_string())
+
+            row = board.get_row(position[0])
+            print("row:", row)
+
+            col = board.get_col(position[1])
+            print("col:", col)
+
+            if self.verify_adjacent(board, position, 0) and self.verify_col_row(board, position, 0):
+                act += [(position[0], position[1], 0), ]
+            
+            print("-------------")
+            board.change_number(position[0], position[1], 1)
+
+            print(board.to_string())
+            row = board.get_row(position[0])
+            print("row:", row)
+
+            col = board.get_col(position[1])
+            print("col:", col)
+
+            if self.verify_adjacent(board, position, 1) and self.verify_col_row(board, position, 1):
+                act += [(position[0], position[1], 1), ]
+
+            print("########")
+            print(act)
+            print("########")
+
+            return act
+
+    def verify_adjacent(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
+        row, col = pos
+        adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
+        adj_v = (value, ) + board.adjacent_horizontal_numbers(row, col)
+        if len(unique(adj_h)) == 1 or len(unique(adj_v)) == 1:
+            return False
+
+        return True
+
+    def verify_col_row(self, board: Board, pos, value):
+
+        n = board.size()
+        if n % 2 == 0:
+            limit = n//2
+        else:
+            limit = n//2 + 1
+
+        row = board.get_row(pos[0])
+        col = board.get_col(pos[1])
+
+        value_row = np.count_nonzero(row == value)
+        value_col = np.count_nonzero(col == value)
+
+        print("row =", value_row, "col =", value_col)
+
+        return value_row <= limit and value_col <= limit
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -259,6 +324,7 @@ class Takuzu(Problem):
         # atualização do tabueleiro
         new_board = Board(n)
         new_board.board_repr = state.board.board_repr.copy()
+
         new_board.change_number(row, col, value)
 
         new_state = TakuzuState(new_board, state.free - 1)
@@ -271,13 +337,7 @@ class Takuzu(Problem):
         estão preenchidas com uma sequência de números adjacentes."""
         # TODO
 
-        board = state.board
-
-        if state.free > 0:
-            return False
-
-        else:
-            return board.verify_col_adjacent() and board.verify_row_adjacent() and board.verify_row_col() and board.unique_row_col()
+        return state.free == 0 and state.board.unique_row_col()
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
@@ -296,5 +356,6 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
+    print(board.board_repr)
     goal_node = depth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
