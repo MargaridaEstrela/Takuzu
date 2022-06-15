@@ -136,24 +136,6 @@ class Board:
 
         return (left, right)
 
-    def unique_row_col(self):
-        """ Retorna True se e só se todas as linhas e colunas forem
-         diferentes."""
-        n = self.size()
-        for i in range(n):
-            col = self.get_col(i).copy()
-            for j in range(i+1, n):
-                if np.array_equal(col, self.get_col(j)):
-                    return False
-
-        for i in range(n):
-            row = self.get_row(i).copy()
-            for j in range(i+1, n):
-                if np.array_equal(row, self.get_row(j)):
-                    return False
-
-        return True
-
     @staticmethod
     def parse_instance_from_stdin():
         """Lê o test do standard input (stdin) que é passado como argumento
