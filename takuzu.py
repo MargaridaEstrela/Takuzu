@@ -249,6 +249,7 @@ class Takuzu(Problem):
             else:
                 return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
                     self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_horizontal(board, pos, value) and \
                     self.verify_adjacent_vertical(board, (row+1, col), down)
 
         elif down is None:
@@ -261,6 +262,7 @@ class Takuzu(Problem):
             else:
                 return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
                     self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_horizontal(board, pos, value) and \
                     self.verify_adjacent_vertical(board, (row-1, col), up)
 
         elif left is None:
@@ -274,8 +276,10 @@ class Takuzu(Problem):
         else:
             return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
                 self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                self.verify_adjacent_horizontal(board, pos, value) and \
                 self.verify_adjacent_vertical(board, (row-1, col), up) and \
-                self.verify_adjacent_vertical(board, (row+1, col), down)
+                self.verify_adjacent_vertical(board, (row+1, col), down) and \
+                self.verify_adjacent_vertical(board, pos, value)
 
     def verify_col_row(self, board: Board, pos, value):
         """ Retorna True se e só se o número de 0s e/ou 1s em cada \
