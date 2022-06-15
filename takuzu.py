@@ -203,64 +203,97 @@ class Takuzu(Problem):
 
         if state.free == 0:
             return act
+
         else:
-            # n = state.board.size()
-            # new_board = Board(n)
-            # new_board.board_repr = state.board.board_repr.copy()
-
             position = state.board.get_first_free()
-            # print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-            # print("new action")
-            # print("position:", position)
-            # print("-------------")
-            # print(new_board.to_string())
 
-            # row = state.board.get_row(position[0])
-            # print("row:", row)
-
-            # col = state.board.get_col(position[1])
-            # print("col:", col)
             row = position[0]
             col = position[1]
-            up = state.board.get_number(row-1, col)
-            left = state.board.get_number(row, col-1)
+
             for number in range(2):
-                state.board.change_number(position[0], position[1], number)
-                if self.verify_adjacent(state.board, position, number) and \
-                   self.verify_col_row(state.board, position, number):
+                state.board.change_number(row, col, number)
+                if self.verify_adjacent(state.board, position, number) and self.verify_col_row(state.board, position, number):
+                    act.append((row, col, number),)
 
-                    if (up is not None and left is not None):
-                        if self.verify_adjacent(state.board, (row-1, col), up) and \
-                           self.verify_adjacent(state.board, (row, col-1), left):
-                            act.append((position[0], position[1], number),)
-
-                    elif (up is not None and left is None):
-                        if self.verify_adjacent(state.board, (row-1, col), up):
-                            act.append((position[0], position[1], number),)
-
-                    elif (up is None and left is not None):
-                        if self.verify_adjacent(state.board, (row, col-1), left):
-                            act.append((position[0], position[1], number),)
-
-                    else:
-                        act.append((position[0], position[1], number),)
-
-            # print("########")
-            # print(act)
-            # print("########")
-            state.board.change_number(position[0], position[1], 2)
+            state.board.change_number(row, col, 2)
             return act
+
+    def verify_adjacent_horizontal(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
+
+        row, col = pos
+        n = board.size()
+
+        if (row == 0 and col in [0, n-1]) or (row == n-1 and col in [0, n-1]):
+            return True
+
+        adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
+
+        return len(unique(adj_h)) != 1
+
+    def verify_adjacent_vertical(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
+
+        row, col = pos
+        n = board.size()
+
+        if (row == 0 and col in [0, n-1]) or (row == n-1 and col in [0, n-1]):
+            return True
+
+        adj_v = (value, ) + board.adjacent_vertical_numbers(row, col)
+
+        return len(unique(adj_v)) != 1
 
     def verify_adjacent(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
          horizontalmente um ao outro."""
+
         row, col = pos
-        adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
-        adj_v = (value, ) + board.adjacent_vertical_numbers(row, col)
-        if len(unique(adj_h)) == 1 or len(unique(adj_v)) == 1:
-            return False
+
+        up = board.get_number(row-1, col)
+        down = board.get_number(row+1, col)
+        left = board.get_number(row, col-1)
+        right = board.get_number(row, col+1)
+
+        if up is None:
+            if left is None:
+                return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
+            elif right is None:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
+            else:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
+
+        elif down is None:
+            if left is None:
+                return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
+            elif right is None:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
+            else:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
+
+        elif left is None:
+            return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                self.verify_adjacent_vertical(board, pos, value)
+
+        elif right is None:
+            return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                self.verify_adjacent_vertical(board, pos, value)
+
         else:
-            return True
+            return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down)
 
     def verify_col_row(self, board: Board, pos, value):
         """ Retorna True se e só se o número de 0s e/ou 1s em cada \
