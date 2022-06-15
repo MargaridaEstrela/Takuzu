@@ -68,14 +68,11 @@ class Board:
         column = []
         n = self.size()
 
-        # print("col =", col)
-        # print("tabuleiro")
-        # print(self.board_repr)
         for i in range(n):
             column.append(self.get_number(i, col))
 
         column = np.array(column)
-        # print(column)
+
         return column
 
     def get_first_free(self):
@@ -268,14 +265,14 @@ class Takuzu(Problem):
         elif left is None:
             return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
                 self.verify_adjacent_vertical(board, pos, value) and \
-                    self.verify_adjacent_vertical(board, (row-1, col), up) and \
-                        self.verify_adjacent_vertical(board, (row+1, col), down)
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down)
 
         elif right is None:
             return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
                 self.verify_adjacent_vertical(board, pos, value) and \
-                    self.verify_adjacent_vertical(board, (row-1, col), up) and \
-                        self.verify_adjacent_vertical(board, (row+1, col), down)
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down)
 
         else:
             return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
@@ -311,10 +308,6 @@ class Takuzu(Problem):
         n = board.size()
         for i in range(n):
             col = board.get_col(i).copy()
-            #for k in range(n):
-             #   row = board.get_row(k).copy()
-              #  if np.array_equal(col, row):
-               #     return False
             for j in range(i+1, n):
                 if np.array_equal(col, board.get_col(j)):
                     return False
@@ -335,13 +328,11 @@ class Takuzu(Problem):
         n = state.board.size()
 
         row, col, value = action
-        # atualização do tabueleiro
+
         new_board = Board(n)
         new_board.board_repr = state.board.board_repr.copy()
-        # print("antes")
-        # print(new_board.board_repr)
         new_board.change_number(row, col, value)
-        # print("depois")
+
         new_state = TakuzuState(new_board, state.free - 1)
 
         return new_state
@@ -371,6 +362,6 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    # print(board.board_repr)
     goal_node = depth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
+    
