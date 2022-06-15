@@ -154,57 +154,6 @@ class Board:
 
         return True
 
-    def verify_row_col(self):
-        """ Retorna True se e só se há o valor certo de 0s e/ou 1s em cada \
-            linha e coluna."""
-        n = self.size()
-
-        if n % 2 == 0:
-            limit = n//2
-        else:
-            limit = n//2 + 1
-
-        for i in range(n):
-            row = self.get_row(i)
-            col = self.get_col(i)
-            # verificar se a linha tem mais 1s ou 0s que o suposto
-            if np.count_nonzero(row) > limit or \
-               np.count_nonzero(row) - limit > 0:
-                return False
-
-            # verificar se a coluna tem mais 1s ou 0s que o suposto
-            if np.count_nonzero(col) > limit or \
-               np.count_nonzero(col) - limit > 0:
-                return False
-
-        return True
-
-    def verify_row_adjacent(self):
-        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
-         horizontalmente um ao outro."""
-        n = self.size()
-
-        for row in range(n):
-            for col in range(n):
-                pos = (self.get_number(row, col),)
-                adj = pos + self.adjacent_horizontal_numbers(row, col)
-                if len(unique(adj)) == 1:
-                    return False
-        return True
-
-    def verify_col_adjacent(self):
-        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
-         verticalmente um ao outro."""
-        n = self.size()
-
-        for row in range(n):
-            for col in range(n):
-                pos = (self.get_number(row, col),)
-                adj = pos + self.adjacent_vertical_numbers(row, col)
-                if len(unique(adj)) == 1:
-                    return False
-        return True
-
     @staticmethod
     def parse_instance_from_stdin():
         """Lê o test do standard input (stdin) que é passado como argumento
@@ -314,6 +263,8 @@ class Takuzu(Problem):
             return True
 
     def verify_col_row(self, board: Board, pos, value):
+        """ Retorna True se e só se o número de 0s e/ou 1s em cada \
+        linha e coluna não excede o limite."""
 
         n = board.size()
         if n % 2 == 0:
@@ -330,6 +281,23 @@ class Takuzu(Problem):
         # print("row =", value_row, "col =", value_col)
 
         return value_row <= limit and value_col <= limit
+
+    def unique_row_col(self, board: Board):
+        """ Retorna True se e só se todas as linhas e colunas forem
+         diferentes."""
+        n = board.size()
+        for i in range(n):
+            col = board.get_col(i).copy()
+            for j in range(i+1, n):
+                if np.array_equal(col, board.get_col(j)):
+                    return False
+        for i in range(n):
+            row = board.get_row(i).copy()
+            for j in range(i+1, n):
+                if np.array_equal(row, board.get_row(j)):
+                    return False
+
+        return True
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -357,7 +325,7 @@ class Takuzu(Problem):
         estão preenchidas com uma sequência de números adjacentes."""
         # TODO
 
-        return state.free == 0 and state.board.unique_row_col()
+        return state.free == 0 and self.unique_row_col(state.board)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
