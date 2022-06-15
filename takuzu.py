@@ -267,11 +267,15 @@ class Takuzu(Problem):
 
         elif left is None:
             return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
-                self.verify_adjacent_vertical(board, pos, value)
+                self.verify_adjacent_vertical(board, pos, value) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                        self.verify_adjacent_vertical(board, (row+1, col), down)
 
         elif right is None:
             return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
-                self.verify_adjacent_vertical(board, pos, value)
+                self.verify_adjacent_vertical(board, pos, value) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                        self.verify_adjacent_vertical(board, (row+1, col), down)
 
         else:
             return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
@@ -307,6 +311,10 @@ class Takuzu(Problem):
         n = board.size()
         for i in range(n):
             col = board.get_col(i).copy()
+            #for k in range(n):
+             #   row = board.get_row(k).copy()
+              #  if np.array_equal(col, row):
+               #     return False
             for j in range(i+1, n):
                 if np.array_equal(col, board.get_col(j)):
                     return False
