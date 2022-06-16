@@ -15,11 +15,11 @@ from utils import unique
 from search import (
     Problem,
     Node,
-    astar_search,
-    breadth_first_tree_search,
+    # astar_search,
+    # breadth_first_tree_search,
     depth_first_tree_search,
-    greedy_search,
-    recursive_best_first_search,
+    # greedy_search,
+    # recursive_best_first_search,
 )
 
 
@@ -174,76 +174,18 @@ class Takuzu(Problem):
             return act
 
         else:
-            first = self.get_first_mandatory_free_position(state.board)
-            if first is not None:
-                return first
-            else:
-                position = state.board.get_first_free()
+            position = state.board.get_first_free()
 
-                row = position[0]
-                col = position[1]
+            row = position[0]
+            col = position[1]
 
-                for number in range(2):
-                    state.board.change_number(row, col, number)
-                    if self.verify_adjacent(state.board, position, number) and self.verify_col_row(state.board, position, number):
-                        act.append((row, col, number),)
+            for number in range(2):
+                state.board.change_number(row, col, number)
+                if self.verify_adjacent(state.board, position, number) and self.verify_col_row(state.board, position, number):
+                    act.append((row, col, number),)
 
-                state.board.change_number(row, col, 2)
-                return act
-
-    def get_first_mandatory_free_position(self, board: Board):
-
-        n = board.size()
-
-        if n % 2 == 0:
-            limit = n//2
-        else:
-            limit = n//2 + 1
-
-        free = board.get_all_free()
-
-        for pos in free:
-            row = board.get_row(pos[0])
-            col = board.get_col(pos[1])
-
-            for value in range(2):
-                value_row = np.count_nonzero(row == value)
-                value_col = np.count_nonzero(col == value)
-
-                if value_row == limit - 1 or value_col == limit - 1:
-                    adj_h = (board.get_number(row, col-2), board.get_number(row, col-1), value, board.get_number(row, col+1), board.get_number(row, col+2))
-                    adj_h = list(filter(None, adj_h))
-
-                    if self.verify_more_than_2(adj_h):
-                        return value
-
-                    else:
-                        adj_v = (board.get_number(row-2, col), board.get_number(row-1, col), value, board.get_number(row+1, col), board.get_number(row+2, col))
-                        adj_v = list(filter(None, adj_v))
-
-                        if self.verify_more_than_2(adj_v):
-                            return value  
-
-        return None
-
-    def verify_more_than_2(self, array):
-        "Retorna True caso haja valor obrigatório para a posição em estudo."
-
-        count = 1
-        value = array[0]
-
-        for i in range(1, len(array)):
-            if value == array[i] and array[i] != 2:
-                count += 1
-            elif count > 2:
-                return 2
-            elif count == 2 and array[i] == 2:
-                return array[i] - 2**value
-            else:
-                value = array[i]
-
-        return 2
-
+            state.board.change_number(row, col, 2)
+            return act
 
     def verify_adjacent_horizontal(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
@@ -331,8 +273,8 @@ class Takuzu(Problem):
                 self.verify_adjacent_vertical(board, pos, value)
 
     def verify_col_row(self, board: Board, pos, value):
-        """ Retorna True se e só se o número de 0s ou 1s em cada \
-        linha e coluna não exceder o limite."""
+        """ Retorna True se e só se o número de 0s e/ou 1s em cada \
+        linha e coluna não excede o limite."""
 
         n = board.size()
         if n % 2 == 0:
@@ -345,6 +287,8 @@ class Takuzu(Problem):
 
         value_row = np.count_nonzero(row == value)
         value_col = np.count_nonzero(col == value)
+
+        # print("row =", value_row, "col =", value_col)
 
         return value_row <= limit and value_col <= limit
 
@@ -360,6 +304,7 @@ class Takuzu(Problem):
 
         return self.find_duplicates(col) and self.find_duplicates(row)
 
+
     def find_duplicates(self, array):
         """ Retorna True se e só se todos os elementos da lista forem únicos."""
 
@@ -369,6 +314,7 @@ class Takuzu(Problem):
                     return False
 
         return True
+
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -415,3 +361,4 @@ if __name__ == "__main__":
     problem = Takuzu(board)
     goal_node = depth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
+    
