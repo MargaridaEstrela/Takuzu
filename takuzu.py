@@ -306,18 +306,25 @@ class Takuzu(Problem):
         """ Retorna True se e só se todas as linhas e colunas forem
          diferentes."""
         n = board.size()
+        col = []
+        row = []
         for i in range(n):
-            col = board.get_col(i).copy()
-            for j in range(i+1, n):
-                if np.array_equal(col, board.get_col(j)):
-                    return False
-        for i in range(n):
-            row = board.get_row(i).copy()
-            for j in range(i+1, n):
-                if np.array_equal(row, board.get_row(j)):
+            col += [board.get_col(i), ]
+            row += [board.get_row(i), ]
+
+        return self.find_duplicates(col) and self.find_duplicates(row)
+
+
+    def find_duplicates(self, array):
+        """ Retorna True se e só se todos os elementos da lista forem únicos."""
+
+        for i in range(len(array)):
+            for j in range(i+1, len(array)):
+                if np.array_equal(array[i], array[j]):
                     return False
 
         return True
+
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
