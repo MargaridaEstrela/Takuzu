@@ -54,7 +54,7 @@ class Board:
     def get_number(self, row: int, col: int):
         """Devolve o valor na respetiva posição do tabuleiro."""
         n = self.size()
-        if(row < 0 or row > n-1 or col < 0 or col > n-1):
+        if (row < 0) or (row > n-1) or (col < 0) or (col > n-1):
             return None
         else:
             return self.board_repr[row][col]
@@ -174,6 +174,11 @@ class Takuzu(Problem):
             return act
 
         else:
+            first_act = self.get_first_mandatory_free_position(state.board)
+
+            if first_act != act:
+                return first_act
+
             position = state.board.get_first_free()
 
             row = position[0]
@@ -186,6 +191,62 @@ class Takuzu(Problem):
 
             state.board.change_number(row, col, 2)
             return act
+
+    def get_first_mandatory_free_position(self, board: Board):
+
+        n = board.size()
+
+        if n % 2 == 0:
+            limit = n//2
+        else:
+            limit = n//2 + 1
+
+        free = board.get_all_free()
+
+        for pos in free:
+            print(pos)
+            row = board.get_row(pos[0])
+            col = board.get_col(pos[1])
+
+            for value in range(2):
+                value_row = np.count_nonzero(row == value)
+                value_col = np.count_nonzero(col == value)
+
+                if value_row == limit or value_col == limit:
+                    return (row, col, 2 - 2**value)
+
+                adj_h = (board.get_number(row, col-2), board.get_number(row, col-1), value, board.get_number(row, col+1), board.get_number(row, col+2))
+                adj_h = list(filter(None, adj_h))
+
+                if self.verify_more_than_2(adj_h):
+                    return value
+
+                else:
+                    adj_v = (board.get_number(row-2, col), board.get_number(row-1, col), value, board.get_number(row+1, col), board.get_number(row+2, col))
+                    adj_v = list(filter(None, adj_v))
+
+                    if self.verify_more_than_2(adj_v):
+                        return value
+
+        return None
+
+    def verify_more_than_2(self, array):
+        "Retorna True caso haja valor obrigatório para a posição em estudo."
+
+        count = 1
+        value = array[0]
+
+        for i in range(1, len(array)):
+            if value == array[i] and array[i] != 2:
+                count += 1
+            elif count > 2:
+                return 2
+            elif count == 2 and array[i] == 2:
+                return array[i] - 2**value
+            else:
+                value = array[i]
+
+        return 2
 
     def verify_adjacent_horizontal(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
