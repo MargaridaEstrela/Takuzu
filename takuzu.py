@@ -220,7 +220,10 @@ class Takuzu(Problem):
                 board.change_number(row, col, value)
 
                 if not self.verify_adjacent_h(board, pos, value) and not self.verify_adjacent_v(board, pos, value):
+                    board.change_number(row, col, 2)
                     return [(pos[0], pos[1], 2 - 2**value)]
+
+                board.change_number(row, col, 2)
 
         return None
 
@@ -296,7 +299,7 @@ class Takuzu(Problem):
 
     def verify_adjacent_v(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
-         horizontalmente um ao outro."""
+         verticalmnente um ao outro."""
 
         row, col = pos
 
