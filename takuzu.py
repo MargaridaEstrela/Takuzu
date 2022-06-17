@@ -172,27 +172,20 @@ class Takuzu(Problem):
 
         if state.free == 0:
             return act
-
+            
         else:
             first_act = self.get_first_mandatory_free_position(state.board)
-            print(first_act)
 
-            if first_act != act:
-                print("here")
+            if not np.array_equal(first_act, act):
                 return first_act
 
-            position = state.board.get_first_free()
+            else:
+                position = state.board.get_first_free()
 
-            row = position[0]
-            col = position[1]
+                row = position[0]
+                col = position[1]
 
-            for number in range(2):
-                state.board.change_number(row, col, number)
-                if self.verify_adjacent_h(state.board, position, number) and self.verify_adjacent_v(state.board, position, number) and self.verify_col_row(state.board, position, number):
-                    act.append((row, col, number),)
-
-            state.board.change_number(row, col, 2)
-            return act
+                return [(row, col, 0), (row, col, 1)]
 
     def get_first_mandatory_free_position(self, board: Board):
 
@@ -223,9 +216,7 @@ class Takuzu(Problem):
                     board.change_number(row, col, 2)
                     return [(pos[0], pos[1], 2 - 2**value)]
 
-                board.change_number(row, col, 2)
-
-        return None
+        return []
 
     def verify_adjacent_horizontal(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
