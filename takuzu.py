@@ -11,6 +11,7 @@
 
 import sys
 import numpy as np
+import copy
 from utils import unique
 from search import (
     Problem,
@@ -197,26 +198,96 @@ class Takuzu(Problem):
             limit = n//2 + 1
 
         free = board.get_all_free()
+        print(board.to_string())
 
         for pos in free:
 
+            print(pos)
+            
             row = board.get_row(pos[0])
             col = board.get_col(pos[1])
 
+            value_row = np.count_nonzero(row == 0)
+            value_col = np.count_nonzero(col == 0)
+
+            if value_row == limit or value_col == limit:
+                return [(pos[0], pos[1], 1)]
+
+            value_row = np.count_nonzero(row == 1)
+            value_col = np.count_nonzero(col == 1)
+
+            if value_row == limit or value_col == limit:
+                return [(pos[0], pos[1], 0)]
+
             for value in range(2):
-                value_row = np.count_nonzero(row == value)
-                value_col = np.count_nonzero(col == value)
+                if self.verify_left(board, pos, value):
+                    print("left_winner")
+                    return [(pos[0], pos[1], value)]
 
-                if value_row == limit or value_col == limit:
-                    return [(pos[0], pos[1], 2 - 2**value)]
+                elif self.verify_right(board, pos, value):
+                    print("right_winner")
+                    return [(pos[0], pos[1], value)]
 
-                board.change_number(row, col, value)
+                elif self.verify_up(board, pos, value):
+                    print("up_winner")
+                    return [(pos[0], pos[1], value)]
 
-                if not self.verify_adjacent_h(board, pos, value) and not self.verify_adjacent_v(board, pos, value):
-                    board.change_number(row, col, 2)
-                    return [(pos[0], pos[1], 2 - 2**value)]
+                elif self.verify_down(board, pos, value):
+                    print("down_winner")
+                    return [(pos[0], pos[1], value)]
+                
+            print("skip")
 
         return []
+
+
+    def verify_left(self, board: Board, pos, value):
+        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+
+        row, col = pos
+
+        left = (board.get_number(row, col-2), board.get_number(row, col-1))
+        left = unique(left)
+        print("left =", left)
+        v = 2 - 2**value
+
+        return len(left) == 1 and v in left
+
+    def verify_right(self, board: Board, pos, value):
+        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+
+        row, col = pos
+
+        right = (board.get_number(row, col+1), board.get_number(row, col+2))
+        right = unique(right)
+        print("right =", right)
+        v = 2 - 2**value
+
+        return len(right) == 1 and v in right
+
+    def verify_up(self, board: Board, pos, value):
+        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+
+        row, col = pos
+
+        up = (board.get_number(row-2, col), board.get_number(row-1, col))
+        up = unique(up)
+        print("up =", up)
+        v = 2 - 2**value
+
+        return len(up) == 1 and v in up
+
+    def verify_down(self, board: Board, pos, value):
+        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+
+        row, col = pos
+
+        down = (board.get_number(row+1, col), board.get_number(row+2, col))
+        down = unique(down)
+        print("down =", down)
+        v = 2 - 2**value
+
+        return len(down) == 1 and v in down
 
     def verify_adjacent_horizontal(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
@@ -346,8 +417,6 @@ class Takuzu(Problem):
         value_row = np.count_nonzero(row == value)
         value_col = np.count_nonzero(col == value)
 
-        # print("row =", value_row, "col =", value_col)
-
         return value_row <= limit and value_col <= limit
 
     def unique_row_col(self, board: Board):
@@ -362,7 +431,6 @@ class Takuzu(Problem):
 
         return self.find_duplicates(col) and self.find_duplicates(row)
 
-
     def find_duplicates(self, array):
         """ Retorna True se e só se todos os elementos da lista forem únicos."""
 
@@ -372,7 +440,6 @@ class Takuzu(Problem):
                     return False
 
         return True
-
 
     def result(self, state: TakuzuState, action):
         """Retorna o estado resultante de executar a 'action' sobre
@@ -385,8 +452,12 @@ class Takuzu(Problem):
         row, col, value = action
 
         new_board = Board(n)
-        new_board.board_repr = state.board.board_repr.copy()
+        new_board.board_repr = copy.deepcopy(state.board.board_repr)
         new_board.change_number(row, col, value)
+
+        print("new board")
+        print(new_board.to_string())
+        print("#################")
 
         new_state = TakuzuState(new_board, state.free - 1)
 
