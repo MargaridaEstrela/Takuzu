@@ -208,13 +208,19 @@ class Takuzu(Problem):
             value_col = np.count_nonzero(col == 0)
 
             if value_row == limit or value_col == limit:
-                return [(pos[0], pos[1], 1)]
+                board.change_number(pos[0], pos[1], 1)
+                if self.verify_adjacent(board, pos, 1):
+                    return [(pos[0], pos[1], 1)]
+
+            board.change_number(pos[0], pos[1], 2)
 
             value_row = np.count_nonzero(row == 1)
             value_col = np.count_nonzero(col == 1)
 
             if value_row == limit or value_col == limit:
-                return [(pos[0], pos[1], 0)]
+                board.change_number(pos[0], pos[1], 0)
+                if self.verify_adjacent(board, pos, 0):
+                    return [(pos[0], pos[1], 0)]
 
             act = []
 
