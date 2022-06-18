@@ -173,13 +173,16 @@ class Takuzu(Problem):
 
         if state.free == 0:
             return act
-
+            
         else:
             first_act = self.get_first_mandatory_free_position(state.board)
+            
+            if first_act==None:
+                return []
 
-            if not np.array_equal(first_act, act):
+            elif not np.array_equal(first_act, act):
                 return first_act
-
+                
             else:
                 position = state.board.get_first_free()
 
@@ -210,7 +213,11 @@ class Takuzu(Problem):
             if value_row == limit or value_col == limit:
                 board.change_number(pos[0], pos[1], 1)
                 if self.verify_adjacent(board, pos, 1):
+                    board.change_number(pos[0], pos[1], 2)
                     return [(pos[0], pos[1], 1)]
+                else:
+                    board.change_number(pos[0], pos[1], 2)
+                    return None
 
             board.change_number(pos[0], pos[1], 2)
 
@@ -220,7 +227,11 @@ class Takuzu(Problem):
             if value_row == limit or value_col == limit:
                 board.change_number(pos[0], pos[1], 0)
                 if self.verify_adjacent(board, pos, 0):
+                    board.change_number(pos[0], pos[1], 2)
                     return [(pos[0], pos[1], 0)]
+                else:
+                    board.change_number(pos[0], pos[1], 2)
+                    return None
 
             act = []
 
@@ -232,10 +243,10 @@ class Takuzu(Problem):
             board.change_number(pos[0], pos[1], 2)
             if len(act) == 1:
                 return act
-
+            if len(act) == 0:
+                return None
+  
         return []
-
-
 
     def verify_adjacent_horizontal(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
@@ -264,6 +275,7 @@ class Takuzu(Problem):
         adj_v = (value, ) + board.adjacent_vertical_numbers(row, col)
 
         return len(unique(adj_v)) != 1
+
 
     def verify_adjacent(self, board: Board, pos, value):
         """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
@@ -322,31 +334,15 @@ class Takuzu(Problem):
                 self.verify_adjacent_vertical(board, (row+1, col), down) and \
                 self.verify_adjacent_vertical(board, pos, value)
 
-    def verify_row_col(self, board: Board):
+    def unique_row_col(self, board: Board):
         """ Retorna True se e só se todas as linhas e colunas forem
          diferentes."""
         n = board.size()
         col = []
         row = []
-
-        if n % 2 == 0:
-            limit = n//2
-        else:
-            limit = n//2 + 1
-
         for i in range(n):
-            c = board.get_col(i)
-            r = board.get_row(i)
-
-            for value in range(n):
-                value_row = np.count_nonzero(row == value)
-                value_col = np.count_nonzero(col == value)
-
-                if value_row > limit or value_col > limit:
-                    return False
-            
-            col += [c, ]
-            row += [r, ]
+            col += [board.get_col(i), ]
+            row += [board.get_row(i), ]
 
         return self.find_duplicates(col) and self.find_duplicates(row)
 
@@ -371,9 +367,8 @@ class Takuzu(Problem):
         row, col, value = action
 
         new_board = Board(n)
-        new_board.board_repr = copy.deepcopy(state.board.board_repr)
+        new_board.board_repr = np.copy(state.board.board_repr)
         new_board.change_number(row, col, value)
-
         new_state = TakuzuState(new_board, state.free - 1)
 
         return new_state
@@ -384,7 +379,7 @@ class Takuzu(Problem):
         estão preenchidas com uma sequência de números adjacentes."""
         # TODO
 
-        return state.free == 0 and self.verify_row_col(state.board)
+        return state.free == 0 and self.unique_row_col(state.board)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
