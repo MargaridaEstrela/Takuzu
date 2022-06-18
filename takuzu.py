@@ -216,65 +216,104 @@ class Takuzu(Problem):
             if value_row == limit or value_col == limit:
                 return [(pos[0], pos[1], 0)]
 
+            act = []
+
             for value in range(2):
-                if self.verify_left(board, pos, value):
-                    return [(pos[0], pos[1], value)]
+                board.change_number(pos[0], pos[1], value)
+                if self.verify_adjacent(board, pos, value):
+                    act.append((pos[0], pos[1], value),)
 
-                elif self.verify_right(board, pos, value):
-                    return [(pos[0], pos[1], value)]
-
-                elif self.verify_up(board, pos, value):
-                    return [(pos[0], pos[1], value)]
-
-                elif self.verify_down(board, pos, value):
-                    return [(pos[0], pos[1], value)]
+            board.change_number(pos[0], pos[1], 2)
+            if len(act) == 1:
+                return act
   
         return []
 
+    def verify_adjacent_horizontal(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
 
-    def verify_left(self, board: Board, pos, value):
-        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+        row, col = pos
+        n = board.size()
+
+        if (row == 0 and col in [0, n-1]) or (row == n-1 and col in [0, n-1]):
+            return True
+
+        adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
+
+        return len(unique(adj_h)) != 1
+
+    def verify_adjacent_vertical(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
+
+        row, col = pos
+        n = board.size()
+
+        if (row == 0 and col in [0, n-1]) or (row == n-1 and col in [0, n-1]):
+            return True
+
+        adj_v = (value, ) + board.adjacent_vertical_numbers(row, col)
+
+        return len(unique(adj_v)) != 1
+
+
+    def verify_adjacent(self, board: Board, pos, value):
+        """ Retorna True caso não haja mais que 2 numeros iguais adjacentes
+         horizontalmente um ao outro."""
 
         row, col = pos
 
-        left = (board.get_number(row, col-2), board.get_number(row, col-1))
-        left = unique(left)
-        v = 2 - 2**value
+        up = board.get_number(row-1, col)
+        down = board.get_number(row+1, col)
+        left = board.get_number(row, col-1)
+        right = board.get_number(row, col+1)
 
-        return len(left) == 1 and v in left
+        if up is None:
+            if left is None:
+                return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
+            elif right is None:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
+            else:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_horizontal(board, pos, value) and \
+                    self.verify_adjacent_vertical(board, (row+1, col), down)
 
-    def verify_right(self, board: Board, pos, value):
-        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
+        elif down is None:
+            if left is None:
+                return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
+            elif right is None:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
+            else:
+                return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                    self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                    self.verify_adjacent_horizontal(board, pos, value) and \
+                    self.verify_adjacent_vertical(board, (row-1, col), up)
 
-        row, col = pos
+        elif left is None:
+            return self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                self.verify_adjacent_vertical(board, pos, value) and \
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down)
 
-        right = (board.get_number(row, col+1), board.get_number(row, col+2))
-        right = unique(right)
-        v = 2 - 2**value
+        elif right is None:
+            return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                self.verify_adjacent_vertical(board, pos, value) and \
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down)
 
-        return len(right) == 1 and v in right
-
-    def verify_up(self, board: Board, pos, value):
-        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
-
-        row, col = pos
-
-        up = (board.get_number(row-2, col), board.get_number(row-1, col))
-        up = unique(up)
-        v = 2 - 2**value
-
-        return len(up) == 1 and v in up
-
-    def verify_down(self, board: Board, pos, value):
-        "Retorna True caso haja 2 numeros iguais seguidos e diferente de vazio ou do valor d"
-
-        row, col = pos
-
-        down = (board.get_number(row+1, col), board.get_number(row+2, col))
-        down = unique(down)
-        v = 2 - 2**value
-
-        return len(down) == 1 and v in down
+        else:
+            return self.verify_adjacent_horizontal(board, (row, col-1), left) and \
+                self.verify_adjacent_horizontal(board, (row, col+1), right) and \
+                self.verify_adjacent_horizontal(board, pos, value) and \
+                self.verify_adjacent_vertical(board, (row-1, col), up) and \
+                self.verify_adjacent_vertical(board, (row+1, col), down) and \
+                self.verify_adjacent_vertical(board, pos, value)
 
     def unique_row_col(self, board: Board):
         """ Retorna True se e só se todas as linhas e colunas forem
@@ -296,38 +335,6 @@ class Takuzu(Problem):
                 if np.array_equal(array[i], array[j]):
                     return False
 
-        return True
-
-    def verify_board(self, board: Board):
-
-        n = board.size()
-
-        for i in range(n):
-            row = board.get_row(i)
-            col = board.get_col(i)
-            value_r = row[0]
-            value_c = col[0]
-            cont_r = 1
-            cont_c = 1
-            for j in range(1, n):
-                if row[j] == value_r:
-                    cont_r += 1
-                else:
-                    value_r = row[j]
-                    cont_r = 1
-
-                if cont_r > 2:
-                    return False
-
-                if col[j] == value_c:
-                    cont_c += 1
-                else:
-                    value_c = col[j]
-                    cont_c = 1
-
-                if cont_c > 2:
-                    return False
-        
         return True
 
     def result(self, state: TakuzuState, action):
@@ -353,7 +360,7 @@ class Takuzu(Problem):
         estão preenchidas com uma sequência de números adjacentes."""
         # TODO
 
-        return self.verify_board(state.board) and state.free == 0 and self.unique_row_col(state.board)
+        return state.free == 0 and self.unique_row_col(state.board)
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
