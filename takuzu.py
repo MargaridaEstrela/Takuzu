@@ -255,7 +255,7 @@ class Takuzu(Problem):
         row, col = pos
         n = board.size()
 
-        if (row == 0 and col in [0, n-1]) or (row == n-1 and col in [0, n-1]):
+        if (col == 0 and row in [0, n-1]) or (col == n-1 and row in [0, n-1]):
             return True
 
         adj_h = (value, ) + board.adjacent_horizontal_numbers(row, col)
