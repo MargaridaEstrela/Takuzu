@@ -17,7 +17,7 @@ from search import (
     Problem,
     Node,
     # astar_search,
-    # breadth_first_tree_search,
+    breadth_first_tree_search,
     depth_first_tree_search,
     greedy_search,
     # recursive_best_first_search,
@@ -389,7 +389,7 @@ class Takuzu(Problem):
         new_board = Board(n)
         new_board.board_repr = np.copy(state.board.board_repr)
         new_board.change_number(row, col, value)
-        new_state = TakuzuState(new_board, state.free - 1,state.zeros-1,state.ones-1)
+        new_state = TakuzuState(new_board, state.free - 1,state.zeros-1,state.ones-1) 
 
         return new_state
 
@@ -418,5 +418,5 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    goal_node = greedy_search(problem)
+    goal_node = breadth_first_tree_search(problem)
     print(goal_node.state.board.to_string())
