@@ -19,7 +19,7 @@ from search import (
     # astar_search,
     # breadth_first_tree_search,
     depth_first_tree_search,
-    # greedy_search,
+    greedy_search,
     # recursive_best_first_search,
 )
 
@@ -27,10 +27,12 @@ from search import (
 class TakuzuState:
     state_id = 0
 
-    def __init__(self, board, free_positions: int):
+    def __init__(self, board, free_positions: int,count_0,count_1):
         self.board = board
         self.id = TakuzuState.state_id
         self.free = free_positions
+        self.zeros = count_0
+        self.ones = count_1
         TakuzuState.state_id += 1
 
     def __lt__(self, other):
@@ -51,6 +53,24 @@ class Board:
     def change_number(self, row, col, value):
         """Altera o valor da respetiva posição do tabuleiro"""
         self.board_repr[row][col] = value
+    
+    def count_zeros(self):
+        n = self.size()
+        count=0
+        for row in range(n):
+            for col in range(n):
+                if self.get_number(row, col) == 0:
+                    count +=1
+        return count  
+
+    def count_ones(self):
+        n = self.size()
+        count=0
+        for row in range(n):
+            for col in range(n):
+                if self.get_number(row, col) == 1:
+                    count +=1
+        return count     
 
     def get_number(self, row: int, col: int):
         """Devolve o valor na respetiva posição do tabuleiro."""
@@ -162,7 +182,7 @@ class Takuzu(Problem):
     def __init__(self, board: Board):
         """O construtor especifica o estado inicial."""
         # TODO
-        self.initial = TakuzuState(board, len(board.get_all_free()))
+        self.initial = TakuzuState(board, len(board.get_all_free()),board.count_zeros(),board.count_ones())
 
     def actions(self, state: TakuzuState):
         """Retorna uma lista de ações que podem ser executadas a
@@ -369,7 +389,7 @@ class Takuzu(Problem):
         new_board = Board(n)
         new_board.board_repr = np.copy(state.board.board_repr)
         new_board.change_number(row, col, value)
-        new_state = TakuzuState(new_board, state.free - 1)
+        new_state = TakuzuState(new_board, state.free - 1,state.zeros-1,state.ones-1)
 
         return new_state
 
@@ -383,8 +403,8 @@ class Takuzu(Problem):
 
     def h(self, node: Node):
         """Função heuristica utilizada para a procura A*."""
-        # TODO
-        pass
+        n=node.state.board.size()
+        return n - max(node.state.zeros,node.state.ones)
 
     # TODO: outros metodos da classe
 
@@ -398,5 +418,5 @@ if __name__ == "__main__":
 
     board = Board.parse_instance_from_stdin()
     problem = Takuzu(board)
-    goal_node = depth_first_tree_search(problem)
+    goal_node = greedy_search(problem)
     print(goal_node.state.board.to_string())
